@@ -12,31 +12,17 @@ class Import extends Tool\BaseController
      */
     protected function importAll()
     {
+        if (!attrib('exec')) {
+            pr('---- debug mode ---- (你必須要輸入參數 exec 才會真正執行)');
+            exit;
+        }
+        di('log')->record('start PHP '. phpversion() );
 
         // Get the API client and construct the service object.
-        $client = \GmailApiManager::getClient();
+        $client = \GmailApiHelper::getClient();
         $service = new \Google_Service_Gmail($client);
 
-        // Print the labels in the user's account.
-        $user = 'me';
-        $results = $service->users_labels->listUsersLabels($user);
 
-        if (count($results->getLabels()) == 0) {
-            print "No labels found.\n";
-        }
-        else {
-            print "Labels:\n";
-            foreach ($results->getLabels() as $label) {
-                printf("- %s\n", $label->getName());
-            }
-        }
-
-
-
-
-
-
-/*
         $optParams = [];
         $optParams['maxResults'] = 5; // Return Only 5 Messages
         $optParams['labelIds'] = 'INBOX'; // Only show messages in Inbox
@@ -58,10 +44,30 @@ class Import extends Tool\BaseController
         $decodedMessage = base64_decode($sanitizedData);
 
         var_dump($decodedMessage);
-echo "\n";
-exit;
-*/
+
 
     }
+
+    protected function getLabels()
+    {
+        // Get the API client and construct the service object.
+        $client = \GmailApiHelper::getClient();
+        $service = new \Google_Service_Gmail($client);
+
+        // Print the labels in the user's account.
+        $user = 'me';
+        $results = $service->users_labels->listUsersLabels($user);
+
+        if (count($results->getLabels()) == 0) {
+            pr("No labels found.");
+        }
+        else {
+            pr("Labels:");
+            foreach ($results->getLabels() as $label) {
+                pr("- " . $label->getName());
+            }
+        }
+    }
+
 
 }

@@ -8,8 +8,9 @@ $baseDir = dirname($vendorDir);
 return array(
     'BaseObject' => $baseDir . '/../app/models/BaseObject.php',
     'ConfigManager' => $baseDir . '/../app/components/manager/ConfigManager.php',
+    'ConsoleHelper' => $baseDir . '/../app/components/helper/ConsoleHelper.php',
     'ErrorSupportHelper' => $baseDir . '/../app/components/helper/ErrorSupportHelper.php',
-    'GmailApiManager' => $baseDir . '/../app/components/manager/GmailApiManager.php',
+    'GmailApiHelper' => $baseDir . '/../app/components/helper/GmailApiHelper.php',
     'Google_Auth_Abstract' => $vendorDir . '/google/apiclient/src/Google/Auth/Abstract.php',
     'Google_Auth_AppIdentity' => $vendorDir . '/google/apiclient/src/Google/Auth/AppIdentity.php',
     'Google_Auth_AssertionCredentials' => $vendorDir . '/google/apiclient/src/Google/Auth/AssertionCredentials.php',

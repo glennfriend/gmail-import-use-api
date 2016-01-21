@@ -32,8 +32,13 @@ function attrib($key, $defaultValue=null)
 /**
  *  輸出
  */
-function put($message)
+function put($message=null)
 {
+    if(null === $message) {
+        echo "\n";
+        return;
+    }
+
     switch (gettype($message)) {
         case "array":
         case "object":

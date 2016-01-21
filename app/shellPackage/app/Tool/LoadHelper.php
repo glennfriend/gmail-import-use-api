@@ -3,9 +3,14 @@ namespace AppModule\Tool;
 
 class LoadHelper
 {
-    public static $request;
-    public static $response;
+    /**
+     *
+     */
     public static $args;
+
+    /**
+     *
+     */
     public static function init(Array $args)
     {
         if (!is_array($args)) {

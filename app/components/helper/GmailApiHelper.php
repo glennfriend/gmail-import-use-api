@@ -1,9 +1,9 @@
 <?php
 
 /**
- *  Gmail Api Manater
+ *  Gmail Api Helper
  */
-class GmailApiManager
+class GmailApiHelper
 {
 
     /**
@@ -32,6 +32,27 @@ class GmailApiManager
         // $client->setApprovalPrompt('force');
         // $client->setApplicationName('');
 
+        $accessToken = self::accessToken();
+        $client->setAccessToken($accessToken);
+
+        // Refresh the token if it's expired.
+        if ($client->isAccessTokenExpired()) {
+            pr('514325243523532452352346523');
+            pr('514325243523532452352346523');
+            $client->refreshToken($client->getRefreshToken());
+            file_put_contents($tokenFile, $client->getAccessToken());
+        }
+
+        return $client;
+    }
+
+    /**
+     *  取得 token
+     *      - 如果無法取得會顯示錯誤訊息並中止程式
+     *      - token 在過期後會自動重寫
+     */
+    protected static function accessToken()
+    {
         $tokenFile = conf('gmail.access_token');
         if (!file_exists($tokenFile)) {
 
@@ -46,30 +67,19 @@ class GmailApiManager
             catch(Exception $e) {
                 pr("Exception Message:");
                 pr($e->getMessage());
-                pr('');
+                pr();
 
                 $authUrl = $client->createAuthUrl();
                 pr("Open the following link in your browser:");
-                pr($authUrl . "\n");
+                pr($authUrl);
+                pr();
                 exit;
             }
 
             file_put_contents($tokenFile, $accessToken);
         }
 
-        $accessToken = file_get_contents($tokenFile);
-        $client->setAccessToken($accessToken);
-
-        // Refresh the token if it's expired.
-        if ($client->isAccessTokenExpired()) {
-            pr('514325243523532452352346523');
-            pr('514325243523532452352346523');
-            $client->refreshToken($client->getRefreshToken());
-            file_put_contents($tokenFile, $client->getAccessToken());
-        }
-
-        return $client;
+        return file_get_contents($tokenFile);
     }
-
 
 }
