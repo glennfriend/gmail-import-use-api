@@ -1,0 +1,46 @@
+##################################################
+Options -Indexes
+
+
+##################################################
+# deny access
+<FilesMatch "\.(bak|backup|save|config|inc|ini|sql|log|tar|gz|zip)$">
+    Order allow,deny
+    Deny from all
+    Satisfy all
+</FilesMatch>
+
+# linux
+<FilesMatch "\.(sh|swp|swo)$">
+    Order allow,deny
+    Deny from all
+    Satisfy all
+</FilesMatch>
+
+# linux
+# -> .htaccess
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+    Satisfy all
+</FilesMatch>
+
+# ~ tag
+# -> index.php~
+<FilesMatch "~">
+    Order allow,deny
+    Deny from all
+    Satisfy all
+</FilesMatch>
+
+
+##################################################
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /gmail-import-use-api
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+  # RewriteRule ^(.*)$ index.php?_url=/$1 [QSA,L]
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>

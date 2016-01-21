@@ -1,0 +1,25 @@
+{
+    "require" : {
+        "slim/slim": "3.*",
+        "symfony/dependency-injection": "3.*",
+        "zendframework/zend-db": "2.*",
+        "doctrine/cache": "1.*",
+
+        "google/apiclient": "1.1.*",
+        "bridge": "*"
+    },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "../app/Bridge"
+        }
+    ],
+    "autoload": {
+        "classmap": [
+            "../app/models",
+            "../app/components/base",
+            "../app/components/helper",
+            "../app/components/manager"
+        ]
+    }
+}

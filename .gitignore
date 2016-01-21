@@ -1,0 +1,5 @@
+/app/config/*.php
+/var/*
+!/var/.htaccess
+*.log
+node_modules/
