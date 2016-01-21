@@ -1,0 +1,13 @@
+{
+    "version":  "1.0.0",
+    "name": "Ydin",
+    "require" : {
+        "php": ">=5.5",
+        "crossjoin/browscap": "1.0.*"
+    },
+    "autoload": {
+        "psr-4": {
+            "Ydin\\": ""
+        }
+    }
+}

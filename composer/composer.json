@@ -6,12 +6,17 @@
         "doctrine/cache": "1.*",
 
         "google/apiclient": "1.1.*",
+        "ydin": "1.*",
         "bridge": "*"
     },
     "repositories": [
         {
             "type": "path",
             "url": "../app/Bridge"
+        },
+        {
+            "type": "path",
+            "url": "../app/Ydin"
         }
     ],
     "autoload": {

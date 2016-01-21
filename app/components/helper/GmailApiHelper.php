@@ -32,13 +32,12 @@ class GmailApiHelper
         // $client->setApprovalPrompt('force');
         // $client->setApplicationName('');
 
-        $accessToken = self::accessToken();
+        $tokenFile = conf('gmail.access_token');
+        $accessToken = self::accessToken($tokenFile);
         $client->setAccessToken($accessToken);
 
         // Refresh the token if it's expired.
         if ($client->isAccessTokenExpired()) {
-            pr('514325243523532452352346523');
-            pr('514325243523532452352346523');
             $client->refreshToken($client->getRefreshToken());
             file_put_contents($tokenFile, $client->getAccessToken());
         }
@@ -51,9 +50,8 @@ class GmailApiHelper
      *      - 如果無法取得會顯示錯誤訊息並中止程式
      *      - token 在過期後會自動重寫
      */
-    protected static function accessToken()
+    protected static function accessToken($tokenFile)
     {
-        $tokenFile = conf('gmail.access_token');
         if (!file_exists($tokenFile)) {
 
             $authCode = conf('gmail.allow_permission_code');

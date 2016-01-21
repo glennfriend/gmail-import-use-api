@@ -11,6 +11,7 @@ return array(
     'ConsoleHelper' => $baseDir . '/../app/components/helper/ConsoleHelper.php',
     'ErrorSupportHelper' => $baseDir . '/../app/components/helper/ErrorSupportHelper.php',
     'GmailApiHelper' => $baseDir . '/../app/components/helper/GmailApiHelper.php',
+    'GmailManager' => $baseDir . '/../app/components/manager/GmailManager.php',
     'Google_Auth_Abstract' => $vendorDir . '/google/apiclient/src/Google/Auth/Abstract.php',
     'Google_Auth_AppIdentity' => $vendorDir . '/google/apiclient/src/Google/Auth/AppIdentity.php',
     'Google_Auth_AssertionCredentials' => $vendorDir . '/google/apiclient/src/Google/Auth/AssertionCredentials.php',
