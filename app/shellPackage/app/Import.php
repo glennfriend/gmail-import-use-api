@@ -81,6 +81,7 @@ class Import extends Tool\BaseController
         $inbox->setContent          ( $info['message']  );
         $inbox->setEmailCreateTime  ( strtotime($date)  );
         $inbox->setProperty('headers', $info['headers'] );
+        $inbox->setProperty('attachs', $info['attachs'] );
 
         return $inbox;
     }
@@ -112,15 +113,5 @@ class Import extends Tool\BaseController
         }
         return '1970-01-01 00:00:00';
     }
-    /**
-     *  將一個字串轉換成 可以作為 key 使用的字串
-     */
-/*
-    protectted function keyConvert($key)
-    {
-        return strtolower(
-            preg_replace('/[^a-zA-Z0-9\-\_]+/', '', $key)
-        );
-    }
-*/
+
 }
