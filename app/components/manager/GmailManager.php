@@ -43,7 +43,7 @@ class GmailManager
          // 請特別注意這一點
         $optParams['maxResults'] = 3;  // 1000
         
-        // INBOX, UNREAD
+        // INBOX, UNREAD, SENT
         // @see https://developers.google.com/gmail/api/guides/labels
         $optParams['labelIds'] = 'INBOX';
 
@@ -65,63 +65,26 @@ class GmailManager
     {
         $optParamsGet = [];
         $optParamsGet['format'] = 'full'; // Display message in payload
-        $message = self::getService()->users_messages->get('me',$messageId,$optParamsGet);
-        // $messagePayload = $message->getPayload();
+        $message = self::getService()->users_messages->get('me', $messageId, $optParamsGet);
 
-        // 這裡是預設 第一組的 headers 是包含
-        //      [name] => Content-Type
-        //      [value] => text/plain; charset=UTF-8
-        //
-
-        $messagePacks = [];
         $parts = $message->getPayload()->getParts();
-//pr(get_class_methods($message));
-//pr($message->getSnippet());
-//echo "\n";
 
-//pr($parts); exit;
+        // debug
+        // pr($message->getSnippet()); pr("");
+        // pr($parts); pr(""); exit;
 
+        $headers = self::_makeHeaders( $message->getPayload()->getHeaders() );
 
-
-/*
-        $textPartIndex = 0;
-        foreach ($parts as $index => $part) {
-            foreach ($part['headers'] as $heads) {
-                if ($heads['name'] === 'Content-Type' && 
-                    $heads['value'] === 'text/plain; charset=UTF-8' ) {
-                    $textPartIndex = $index;
-                    break;
-                }
-            }
-        }
-
-        $body = $parts[$textPartIndex]['body'];
-        print_r($body);
-*/
-
-        //$body = $parts[0]['parts'][1]['body'];
-        $body = $parts[0]['body'];
-
-
-
-        $decodedMessage = self::_decodeRawData($body->data);
-
-        // TODO: 未處理附件
-        // TODO: 未處理內文mime檔案
-
-        $headers = [];
-        foreach ($message->getPayload()->getHeaders() as $header) {
-            $key = strtolower($header->getName());
-            $headers[$key] = $header->getValue();
-        }
-
+        // 解析 parts 為程式所必須要的資訊
+        $partItems = self::_parseParts($parts);
+        
+        // 將 附件 及 內置媒體訊息 建立為實體檔案
         $attachFolderName = self::_getAttachmentFolderName($headers);
-        $attachsInfo = self::_storageMessageAttachments($messageId, $parts, $attachFolderName);
+        $data = self::_storageAttachments($messageId, $partItems, $attachFolderName);
 
         return [
             'headers'   => $headers,
-            'attachs'   => $attachsInfo,
-            'message'   => $decodedMessage,
+            'data'      => $data,
         ];
     }
 
@@ -157,37 +120,102 @@ class GmailManager
     }
 
     /**
-     *  將信件中的附件儲存至指定的路徑中
+     *  初步解析 parts
+     */
+    private static function _parseParts($parts, $info=[])
+    {
+        if (!$parts) {
+            return $info;
+        }
+
+        foreach ($parts as $index => $part) {
+
+            $item = [];
+            $item['mimeType'] = $part['mimeType'];
+
+            $name = $part->getFilename();
+            if ($name || strlen($name)>0) {
+                $storageFilename = self::_getFilenameByName($name);
+                $item['attachId']   = $part['body']['attachmentId'];
+                $item['name']       = $name;
+                $item['headers']    = self::_makeHeaders($part['headers']);
+            }
+
+            $content = self::_decodeRawData($part['body']['data']);
+            if ($content) {
+                $item['content'] = $content;
+            }
+
+            if ($part['body']['size'] > 0) {
+                $info[] = $item;
+            }
+
+            $subParts = $part->getParts();
+            if ($subParts) {
+                $info = array_merge(
+                    $info,
+                    self::_parseParts($subParts, $info)
+                );
+            }
+        }
+
+        return $info;
+    }
+
+    /**
+     *  將 header 裡面的 name, value 陣列訊息
+     *  轉換為陣列的 key, value 形式
      *
      *  @return array
      */
-    private static function _storageMessageAttachments($messageId, $parts, $attachFolderName)
+    private static function _makeHeaders($headers)
     {
-        $files = [];
-        foreach ($parts as $index => $part) {
-            $name = $part->getFilename();
-            if (!$name || strlen($name)<=0) {
+        $results = [];
+        foreach ($headers as $header) {
+            $key = strtolower($header->getName());
+            $results[$key] = $header->getValue();
+        }
+        return $results;
+    }
+
+    /**
+     *  將信件中的附件儲存至指定的路徑中
+     *      - 將 附件 建立為實體檔案
+     *      - 將 內置媒體訊息 建立為實體檔案
+     *
+     *  @return array
+     */
+    private static function _storageAttachments($messageId, $partItems, $attachFolderName)
+    {
+        foreach ($partItems as $index => $item) {
+
+            if (!isset($item['attachId'])) {
                 continue;
             }
-            $storageFilename = self::_getFilenameByName($name);
+            if (!isset($item['name'])) {
+                continue;
+            }
+            if (!isset($item['mimeType'])) {
+                continue;
+            }
 
-            $attachId = $part['body']->getAttachmentId();
-            $attachPartBody = self::getService()->users_messages_attachments->get('me', $messageId, $attachId);
+            $name = $item['name'];
+            $storageFilename = self::_getFilenameByName($name);
+            $attachPartBody = self::getService()->users_messages_attachments->get('me', $messageId, $item['attachId']);
             $resource = self::_decodeRawData($attachPartBody->data);
 
-            $fliePath = self::getAttachmentPath() . '/' . $attachFolderName . '/content';
+            $fliePath = self::getAttachmentPath() . '/' . $attachFolderName;
             if (!file_exists($fliePath)) {
                 mkdir($fliePath, 0777, true);
             }
-            file_put_contents($fliePath. '/'. $storageFilename, $resource);
-            
-            $files[] = [
-                'name'      => $name,
-                'filename'  => $storageFilename,
-                'folder'    => $attachFolderName,
-            ];
+            file_put_contents($fliePath . '/' . $storageFilename, $resource);
+
+            $partItems[$index]['filename'] = $storageFilename;
+            $partItems[$index]['folder']   = $attachFolderName;
+            unset($partItems[$index]['attachId']);
         }
-        return $files;
+
+        return $partItems;
     }
 
     /**
@@ -209,13 +237,6 @@ class GmailManager
             $filename .= '.' . $extensionName;
         }
         return strtolower($filename);
-    }
-
-    private static function _base64Deocde($data)
-    {
-        echo '5123512524153124532';
-        exit;
-        return base64_decode(str_pad(strtr($data, '-_', '+/'), strlen($data) % 4, "=", STR_PAD_RIGHT));
     }
 
 }

@@ -24,6 +24,8 @@ class Import extends Tool\BaseController
         foreach ($messages as $message) {
             $inbox = $this->makeInbox($message);
             pr($inbox);
+            pr('');
+
             //$inboxes->addInbox($inbox);
         }
 
@@ -75,13 +77,18 @@ class Import extends Tool\BaseController
         if ( isset($to[0]) ) {
             $inbox->setToName ($to[0]);
         }
-        $inbox->setReplyToName ( $inbox->getFromName() );
+        $inbox->setReplyToName          ( $inbox->getFromName()             );
 
-        $inbox->setSubject          ( $heads('subject') );
-        $inbox->setContent          ( $info['message']  );
-        $inbox->setEmailCreateTime  ( strtotime($date)  );
-        $inbox->setProperty('headers', $info['headers'] );
-        $inbox->setProperty('attachs', $info['attachs'] );
+        $inbox->setSubject              ( $heads('subject')                 );
+        $inbox->setEmailCreateTime      ( strtotime($date)                  );
+        $inbox->setProperty             ('headers', $info['headers']        );
+        $inbox->setProperty             ('data',    $info['data']           );
+
+        foreach ($info['data'] as $item) {
+            if ('text/plain'===$item['mimeType']) {
+                $inbox->setContent( $item['content'] );
+            }
+        }
 
         return $inbox;
     }
