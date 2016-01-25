@@ -1,12 +1,13 @@
 {
     "require" : {
+        "google/apiclient": "1.1.*",
+        "symfony/console": "2.*",
+        "ydin": "1.*",
+
         "slim/slim": "3.*",
         "symfony/dependency-injection": "3.*",
         "zendframework/zend-db": "2.*",
         "doctrine/cache": "1.*",
-
-        "google/apiclient": "1.1.*",
-        "ydin": "1.*",
         "bridge": "*"
     },
     "repositories": [

@@ -18,16 +18,58 @@ class Import extends Tool\BaseController
         }
         di('log')->record('start PHP '. phpversion() );
 
-
-        $messages = \GmailManager::getAll();
+        $show = [];
         $inboxes = new \Inboxes();
+
+        $messages = \GmailManager::getUnreadMessages();
         foreach ($messages as $message) {
             $inbox = $this->makeInbox($message);
-            pr($inbox);
-            pr('');
-
-            //$inboxes->addInbox($inbox);
+            $result = $inboxes->addInbox($inbox);
+            if ($result) {
+                // 將信件設定為 已讀
+                //\GmailManager::setMessageLabelToIsRead($message['googleMessageId']);
+            }
+            else {
+                $result = 'fail';
+            }
+            $show[] = [
+                $message['googleMessageId'],
+                $inbox->getSubject(),
+                $inbox->getFromEmail(),
+                '', // $inbox->getToEmail()
+                date('Y-m-d H:i:s', $inbox->getEmailCreateTime()),
+                'get',
+                $result
+            ];
         }
+
+
+        $messages = \GmailManager::getSendMessages();
+        foreach ($messages as $message) {
+            $inbox = $this->makeInbox($message);
+            /*
+            $result = $inboxes->addInbox($inbox);
+            if ($result) {
+                // TODO: 刪除新信件
+            }
+            */
+            $show[] = [
+                $message['googleMessageId'],
+                $inbox->getSubject(),
+                '',
+                $inbox->getToEmail(),
+                date('Y-m-d H:i:s', $inbox->getEmailCreateTime()),
+                'sent',
+                ''
+            ];
+        }
+
+        pr(
+            \ConsoleHelper::table(
+                ['google message id', 'subject', 'from', 'to', 'date', 'type', 'result'],
+                $show
+            )
+        );
 
     }
 
@@ -55,13 +97,14 @@ class Import extends Tool\BaseController
         }
     }
 
+
     private function makeInbox($info)
     {
         $heads = \Ydin\ArrayKit\Dot::factory($info['headers']);
 
         $from   = explode('<', $heads('from')   );
         $to     = explode('<', $heads('to')     );
-        $date   = $this->timezoneConvert( $heads('date'), 'UTC', 'America/Los_Angeles' );
+        $date   = $this->timezoneConvert( $heads('date'), 'UTC', conf('app.timezone') );
 
         $inbox = new \Inbox();
         $inbox->setMessageId            ( $heads('message-id')              );
@@ -71,21 +114,22 @@ class Import extends Tool\BaseController
         $inbox->setToEmail              ( trim($to[1],   '<>')              );
         $inbox->setReplyToEmail         ( trim($heads('return-path'), '<>') );
 
-        if ( isset($from[0]) ) {
+        if (isset($from[0])) {
             $inbox->setFromName ($from[0]);
         }
-        if ( isset($to[0]) ) {
+        if (isset($to[0])) {
             $inbox->setToName ($to[0]);
         }
-        $inbox->setReplyToName          ( $inbox->getFromName()             );
+        $inbox->setReplyToName          ( $inbox->getFromName() );
 
-        $inbox->setSubject              ( $heads('subject')                 );
-        $inbox->setEmailCreateTime      ( strtotime($date)                  );
-        $inbox->setProperty             ('headers', $info['headers']        );
-        $inbox->setProperty             ('data',    $info['data']           );
+        $inbox->setSubject              ( $heads('subject')                         );
+        $inbox->setEmailCreateTime      ( strtotime($date)                          );
+        $inbox->setProperty             ('headers',         $info['headers']        );
+        $inbox->setProperty             ('data',            $info['data']           );
+        $inbox->setProperty             ('googleMessageId', $info['googleMessageId']);
 
         foreach ($info['data'] as $item) {
-            if ('text/plain'===$item['mimeType']) {
+            if ('text/plain' === $item['mimeType']) {
                 $inbox->setContent( $item['content'] );
             }
         }

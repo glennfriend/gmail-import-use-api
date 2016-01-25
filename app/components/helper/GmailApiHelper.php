@@ -12,10 +12,13 @@ class GmailApiHelper
      */
     public static function getClient()
     {
+        /*
         $scopes = implode(' ', array(
             Google_Service_Gmail::GMAIL_READONLY
         ));
-        //$scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
+        */
+        // $scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
+        $scopes = ['https://www.googleapis.com/auth/gmail.modify'];
 
         $clientSecretFile = conf('gmail.client_secret');
         if (!file_exists($clientSecretFile)) {
@@ -33,7 +36,7 @@ class GmailApiHelper
         // $client->setApplicationName('');
 
         $tokenFile = conf('gmail.access_token');
-        $accessToken = self::accessToken($tokenFile);
+        $accessToken = self::accessToken($client, $tokenFile);
         $client->setAccessToken($accessToken);
 
         // Refresh the token if it's expired.
@@ -50,7 +53,7 @@ class GmailApiHelper
      *      - 如果無法取得會顯示錯誤訊息並中止程式
      *      - token 在過期後會自動重寫
      */
-    protected static function accessToken($tokenFile)
+    protected static function accessToken($client, $tokenFile)
     {
         if (!file_exists($tokenFile)) {
 
@@ -65,12 +68,12 @@ class GmailApiHelper
             catch(Exception $e) {
                 pr("Exception Message:");
                 pr($e->getMessage());
-                pr();
+                pr('');
 
                 $authUrl = $client->createAuthUrl();
                 pr("Open the following link in your browser:");
                 pr($authUrl);
-                pr();
+                pr('');
                 exit;
             }
 

@@ -22,53 +22,13 @@ class GmailManager
         return $service;
     }
 
-    /**
-     *  從 gmail 取得多筆郵件
-     *
-     *  NOTE:
-     *      郵件無法依照 舊到新的時間 取得
-     *      由於寫到資料庫的時候, 舊的信件 id 可能會高於新的 id
-     *      所以在自己的資料庫取郵件時
-     *      順序請依照 日期, 不要使用 id 來做順序的依據
-     *
-     */
-    public static function getAll()
-    {
-        $optParams = [];
-
-         // maxResults 設定很高的值
-         // 取得郵件後, 請逆轉陣列順序
-         // 以便在資料庫可以接近 舊 -> 新 的資料
-         // 但還是會有機會不是依照這個順序
-         // 請特別注意這一點
-        $optParams['maxResults'] = 3;  // 1000
-        
-        // INBOX, UNREAD, SENT
-        // @see https://developers.google.com/gmail/api/guides/labels
-        $optParams['labelIds'] = 'INBOX';
-
-        $messagesResponse = self::getService()->users_messages->listUsersMessages('me', $optParams);
-        $list = $messagesResponse->getMessages();
-        $list = array_reverse($list);
-
-        $messages = [];
-        foreach ($list as $gmailMessage) {
-            $messageId = $gmailMessage->getId();
-            $messages[] = self::getMessage($messageId);
-        }
-
-        return $messages;
-    }
-
-
     public static function getMessage($messageId)
     {
         $optParamsGet = [];
-        $optParamsGet['format'] = 'full'; // Display message in payload
+        $optParamsGet['format'] = 'full';
         $message = self::getService()->users_messages->get('me', $messageId, $optParamsGet);
 
         $parts = $message->getPayload()->getParts();
-
         // debug
         // pr($message->getSnippet()); pr("");
         // pr($parts); pr(""); exit;
@@ -83,10 +43,92 @@ class GmailManager
         $data = self::_storageAttachments($messageId, $partItems, $attachFolderName);
 
         return [
-            'headers'   => $headers,
-            'data'      => $data,
+            'googleMessageId'   => $messageId,
+            'headers'           => $headers,
+            'data'              => $data,
         ];
     }
+
+    /**
+     *  從 gmail 取得多筆 未閱讀 的郵件
+     *
+     *  NOTE:
+     *      取得的 gmail 郵件是由 新 -> 舊 取得
+     *      程式直接將陣列反轉輸出
+     *
+     *  @see https://developers.google.com/gmail/api/guides/labels
+     */
+    public static function getUnreadMessages()
+    {
+        $optParams = [];
+
+        // maxResults 設定很高的值
+        // 是為了讓 資料庫 中資料的建立時間, 最接近 舊 -> 新 郵件
+        // 但是! 還是有機會不是這個順序
+        // 請特別注意這一點
+        $optParams['maxResults'] = 1000;  // 1000
+
+        // INBOX, UNREAD, SENT
+        $optParams['labelIds'] = 'UNREAD';
+        $messagesResponse = self::getService()->users_messages->listUsersMessages('me', $optParams);
+
+        $messages = [];
+        $list = $messagesResponse->getMessages();
+        foreach ($list as $gmailMessage) {
+            $messageId  = $gmailMessage->getId();
+            $messages[] = self::getMessage($messageId);
+        }
+
+        return array_reverse($messages);
+    }
+
+    /**
+     *  從 gmail 取得多筆 已寄信 的郵件
+     *
+     *  NOTE:
+     *      取得的 gmail 郵件是由 新 -> 舊 取得
+     *      程式直接將陣列反轉輸出
+     *
+     *  @see https://developers.google.com/gmail/api/guides/labels
+     */
+    public static function getSendMessages()
+    {
+        $optParams = [];
+
+        // maxResults 設定很高的值
+        // 原因相同於 getUnreadMessages()
+        $optParams['maxResults'] = 1000;  // 1000
+        $optParams['labelIds']   = 'SENT';
+        $messagesResponse = self::getService()->users_messages->listUsersMessages('me', $optParams);
+
+        $messages = [];
+        $list = $messagesResponse->getMessages();
+        foreach ($list as $gmailMessage) {
+            $messageId = $gmailMessage->getId();
+            $messages[] = self::getMessage($messageId);
+        }
+
+        return array_reverse($messages);
+    }
+
+    /**
+     *  將郵件設定為 已讀
+     *      - 將 label id "UNREAD" 移除即可
+     */
+    public static function setMessageLabelToIsRead($messageId)
+    {
+        $mods = new Google_Service_Gmail_ModifyMessageRequest();
+        $mods->setRemoveLabelIds(['UNREAD']);
+        try {
+            $message = self::getService()->users_messages->modify('me', $messageId, $mods);
+        }
+        catch (Exception $e) {
+            echo 'Remove message lable error ' . $e->getMessage() . "\n";
+        }
+    }
+
+
+
 
     /**
      *  儲存附件的資料夾 名稱
