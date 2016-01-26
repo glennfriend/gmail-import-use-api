@@ -125,9 +125,9 @@ class Import extends Tool\BaseController
 
         $inbox->setSubject              ( $heads('subject')                         );
         $inbox->setEmailCreateTime      ( strtotime($date)                          );
+        $inbox->setProperty             ('googleMessageId', $info['googleMessageId']);
         $inbox->setProperty             ('headers',         $info['headers']        );
         $inbox->setProperty             ('data',            $info['data']           );
-        $inbox->setProperty             ('googleMessageId', $info['googleMessageId']);
 
         foreach ($info['data'] as $item) {
             if ('text/plain' === $item['mimeType']) {

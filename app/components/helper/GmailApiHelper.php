@@ -12,14 +12,10 @@ class GmailApiHelper
      */
     public static function getClient()
     {
-        /*
-        $scopes = implode(' ', array(
-            Google_Service_Gmail::GMAIL_READONLY
-        ));
-        */
+        // $scopes = implode(' ', [Google_Service_Gmail::GMAIL_READONLY]);
         // $scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
         // $scopes = ['https://www.googleapis.com/auth/gmail.modify'];
-        $scopes = ['https://mail.google.com/'];
+        $scopes    = ['https://mail.google.com/'];  // 包含 read, modify, delete
 
         $clientSecretFile = conf('gmail.client_secret');
         if (!file_exists($clientSecretFile)) {
@@ -34,7 +30,6 @@ class GmailApiHelper
         $client->setAuthConfigFile( $clientSecretFile );
         $client->setAccessType('offline');
         // $client->setApprovalPrompt('force');
-        // $client->setApplicationName('');
 
         $tokenFile = conf('gmail.access_token');
         $accessToken = self::accessToken($client, $tokenFile);
@@ -61,9 +56,9 @@ class GmailApiHelper
             $authCode = conf('gmail.allow_permission_code');
 
             try {
-                // 在取得 auth code 之後
+                // 取得 auth code 之後
                 // 跟 google 要 token
-                // 並且記得回存至 file 中, 以供日後使用
+                // 並且回存至 file 中, 以供日後使用
                 $accessToken = $client->authenticate($authCode);
             }
             catch(Exception $e) {
