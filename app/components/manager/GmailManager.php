@@ -5,9 +5,12 @@
  */
 class GmailManager
 {
-    public static function getAttachmentPath()
+    private static $config = [];
+
+    public static function init($attachPath)
     {
-        return conf('app.path').'/var/attach';
+        // 儲存附件的位置
+        self::$config['attachPath'] = $attachPath;
     }
 
     public static function getService()
@@ -114,6 +117,8 @@ class GmailManager
     /**
      *  將郵件設定為 已讀
      *      - 將 label id "UNREAD" 移除即可
+     *
+     *  @return boolean
      */
     public static function setMessageLabelToIsRead($messageId)
     {
@@ -121,9 +126,28 @@ class GmailManager
         $mods->setRemoveLabelIds(['UNREAD']);
         try {
             $message = self::getService()->users_messages->modify('me', $messageId, $mods);
+            return true;
         }
         catch (Exception $e) {
             echo 'Remove message lable error ' . $e->getMessage() . "\n";
+            return false;
+        }
+    }
+
+    /**
+     *  刪除 gmail 中的郵件
+     *
+     *  @return boolean
+     */
+    public static function deleteMessage($messageId)
+    {
+        try {
+            $message = self::getService()->users_messages->delete('me', $messageId);
+            return true;
+        }
+        catch (Exception $e) {
+            echo 'Delete message error ' . $e->getMessage() . "\n";
+            return false;
         }
     }
 

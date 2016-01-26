@@ -18,7 +18,8 @@ class GmailApiHelper
         ));
         */
         // $scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
-        $scopes = ['https://www.googleapis.com/auth/gmail.modify'];
+        // $scopes = ['https://www.googleapis.com/auth/gmail.modify'];
+        $scopes = ['https://mail.google.com/'];
 
         $clientSecretFile = conf('gmail.client_secret');
         if (!file_exists($clientSecretFile)) {

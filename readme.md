@@ -10,3 +10,6 @@
 - setting gmail account & password
 - mkdir -p var/cache var/key
 - cmod -R 777 var/
+
+####Insufficient Permission (如果有發生權限不足的情況)
+- rm var/key/google-token.json

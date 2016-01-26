@@ -50,11 +50,22 @@ class PackageSetting extends PackageSettingBase
     }
 
     /**
+     *  package init
+     */
+    public function packageInit()
+    {
+        \GmailManager::init(
+            conf('app.path') . '/var/attach'
+        );
+    }
+
+    /**
      *
      */
     public function perform()
     {
         $this->autoloader();
         $this->diLoader();
+        $this->packageInit();
     }
 }

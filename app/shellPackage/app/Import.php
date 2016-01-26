@@ -27,46 +27,47 @@ class Import extends Tool\BaseController
             $result = $inboxes->addInbox($inbox);
             if ($result) {
                 // 將信件設定為 已讀
-                //\GmailManager::setMessageLabelToIsRead($message['googleMessageId']);
+                \GmailManager::setMessageLabelToIsRead($message['googleMessageId']);
             }
             else {
                 $result = 'fail';
             }
+
             $show[] = [
                 $message['googleMessageId'],
+                $inbox->getMessageId(),
                 $inbox->getSubject(),
-                $inbox->getFromEmail(),
-                '', // $inbox->getToEmail()
+                'get from: ' . $inbox->getFromEmail(),
                 date('Y-m-d H:i:s', $inbox->getEmailCreateTime()),
-                'get',
                 $result
             ];
         }
 
-
         $messages = \GmailManager::getSendMessages();
         foreach ($messages as $message) {
             $inbox = $this->makeInbox($message);
-            /*
             $result = $inboxes->addInbox($inbox);
             if ($result) {
-                // TODO: 刪除新信件
+                // 刪除該信件!!
+                \GmailManager::deleteMessage($message['googleMessageId']);
             }
-            */
+            else {
+                $result = 'fail';
+            }
+
             $show[] = [
                 $message['googleMessageId'],
+                $inbox->getMessageId(),
                 $inbox->getSubject(),
-                '',
-                $inbox->getToEmail(),
+                'send to : '. $inbox->getToEmail(),
                 date('Y-m-d H:i:s', $inbox->getEmailCreateTime()),
-                'sent',
-                ''
+                $result
             ];
         }
 
         pr(
             \ConsoleHelper::table(
-                ['google message id', 'subject', 'from', 'to', 'date', 'type', 'result'],
+                ['google message id', 'message id', 'subject', 'from/to', 'date', 'result'],
                 $show
             )
         );
