@@ -21,8 +21,6 @@ class Info extends Tool\BaseController
             exit;
         }
         $id = attrib(0);
-
-
         $inboxes = new \Inboxes();
 
         // get by last
@@ -76,13 +74,6 @@ class Info extends Tool\BaseController
      */
     private function _show($inbox)
     {
-        //pr('------------------------------------------------------------');
-        //pr('id     : ' . $inbox->getId()                                    );
-        //pr('time   : ' . date('Y-m-d H:i:s', $inbox->getEmailCreateTime())  );
-        //pr('from   : ' . $inbox->getFromEmail()                             );
-        //pr('to     : ' . $inbox->getToEmail()                               );
-        //pr('subject: ' . $inbox->getSubject()                               );
-
         pr(
             \ConsoleHelper::table(
                 ['subject', 'date', 'from', 'to', 'id'],
@@ -117,7 +108,6 @@ class Info extends Tool\BaseController
         }
 
         pr('');
-
     }
 
 }
