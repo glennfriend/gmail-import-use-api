@@ -19,7 +19,7 @@ class GmailManager
         if ($service) {
             return $service;
         }
-        // Get the API client and construct the service object.
+
         $client = \GmailApiHelper::getClient();
         $service = new \Google_Service_Gmail($client);
         return $service;
@@ -270,7 +270,7 @@ class GmailManager
             $attachPartBody = self::getService()->users_messages_attachments->get('me', $messageId, $item['attachId']);
             $resource = self::_decodeRawData($attachPartBody->data);
 
-            $fliePath = self::getAttachmentPath() . '/' . $attachFolderName;
+            $fliePath = self::$config['attachPath'] . '/' . $attachFolderName;
             if (!file_exists($fliePath)) {
                 mkdir($fliePath, 0777, true);
             }
