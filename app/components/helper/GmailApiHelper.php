@@ -13,9 +13,16 @@ class GmailApiHelper
     public static function getClient()
     {
         // $scopes = implode(' ', [Google_Service_Gmail::GMAIL_READONLY]);
-        // $scopes = ['https://www.googleapis.com/auth/gmail.readonly'];
-        // $scopes = ['https://www.googleapis.com/auth/gmail.modify'];
-        $scopes    = ['https://mail.google.com/'];  // 包含 read, modify, delete
+        /*
+            $scopes = [
+                'https://www.googleapis.com/auth/gmail.readonly',
+                'https://www.googleapis.com/auth/gmail.modify',
+                'https://www.googleapis.com/auth/gmail.send',
+            ];
+        */
+        $scopes = [
+            'https://mail.google.com/',     // read, modify, delete, send
+        ];
 
         $clientSecretFile = conf('gmail.client_secret');
         if (!file_exists($clientSecretFile)) {

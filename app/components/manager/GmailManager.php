@@ -36,11 +36,20 @@ class GmailManager
         // pr($message->getSnippet()); pr("");
         // pr($parts); pr(""); exit;
 
+        $body = $message->getSnippet();
+        if (isset(
+                $message['payload'],
+                $message['payload']['body'],
+                $message['payload']['body']['data']
+            )) {
+            $body = self::_decodeRawData($message['payload']['body']['data']);
+        }
+
         $headers = self::_makeHeaders( $message->getPayload()->getHeaders() );
 
         // 解析 parts 為程式所必須要的資訊
         $partItems = self::_parseParts($parts);
-        
+
         // 將 附件 及 內置媒體訊息 建立為實體檔案
         $attachFolderName = self::_getAttachmentFolderName($headers);
         $data = self::_storageAttachments($messageId, $partItems, $attachFolderName);
@@ -49,6 +58,7 @@ class GmailManager
             'googleMessageId'   => $messageId,
             'headers'           => $headers,
             'data'              => $data,
+            'body'              => $body,
         ];
     }
 
@@ -151,8 +161,47 @@ class GmailManager
         }
     }
 
+    /**
+     *  send gmail
+     *
+     *  TODO: 請加入附件, 但應該不是在這個 method 擴充
+     *
+     *  @return boolean
+     */
+    public static function sendMessage($to, $subject, $body)
+    {
+        $from = conf('gmail.email');
+        //$from = "My-Self <{$from}>";
+
+        $mail = new \Nette\Mail\Message;
+        $mail
+            ->setFrom   ( $from )
+            ->addTo     ( $to )
+            ->setSubject( $subject )
+            ->setBody   ( $body )
+        ;
+
+        $messageText = $mail->generateMessage();
+        $data = self::_encodeRawData($messageText);
+
+        try {
+            $message = new Google_Service_Gmail_Message();
+            $message->setRaw($data);
+            self::getService()->users_messages->send("me", $message);
+        }
+        catch (Exception $e) {
+            echo 'Send message error ' . $e->getMessage() . "\n";
+            return false;
+        }
+
+        return true;
+    }
 
 
+
+    // --------------------------------------------------------------------------------
+    // private
+    // --------------------------------------------------------------------------------
 
     /**
      *  儲存附件的資料夾 名稱
@@ -181,9 +230,23 @@ class GmailManager
      */
     private static function _decodeRawData($rawData)
     {
-        $sanitizedData = strtr($rawData,'-_', '+/');
+        $sanitizedData = strtr($rawData, '-_', '+/');
         return base64_decode($sanitizedData);
     }
+
+    /**
+     *
+     */
+    private static function _encodeRawData($data)
+    {
+        return str_replace(
+            ['+', '/', '='],
+            ['-', '_', ''],
+            base64_encode($data)
+        );
+    }
+
+
 
     /**
      *  初步解析 parts

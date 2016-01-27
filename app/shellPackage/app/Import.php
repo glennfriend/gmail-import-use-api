@@ -9,6 +9,12 @@ class Import extends Tool\BaseController
 
     /**
      *  import all emails
+     *      - 將 send 信件匯入, 然後刪除
+     *      - 將 get 的未讀信信匯入, 設定成已讀
+     *      - 導入 send 信件要早於 get, 奇怪的原因如下面 "NOTE" 寫的
+     *
+     *  NOTE: 一個待查的問題, 如果寄信給自己, 只會收到一封信, 然而 匯入 "get" & "send" 都會取得這封信, 這個會造成一些問題....
+     *
      */
     protected function importAll()
     {
@@ -21,28 +27,7 @@ class Import extends Tool\BaseController
         $show = [];
         $inboxes = new \Inboxes();
 
-        $messages = \GmailManager::getUnreadMessages();
-        foreach ($messages as $message) {
-            $inbox = $this->makeInbox($message);
-            $result = $inboxes->addInbox($inbox);
-            if ($result) {
-                // 將信件設定為 已讀
-                \GmailManager::setMessageLabelToIsRead($message['googleMessageId']);
-            }
-            else {
-                $result = 'fail';
-            }
-
-            $show[] = [
-                $message['googleMessageId'],
-                $inbox->getMessageId(),
-                $inbox->getSubject(),
-                'get from: ' . $inbox->getFromEmail(),
-                date('Y-m-d H:i:s', $inbox->getEmailCreateTime()),
-                $result
-            ];
-        }
-
+        // import "send" emails
         $messages = \GmailManager::getSendMessages();
         foreach ($messages as $message) {
             $inbox = $this->makeInbox($message);
@@ -60,6 +45,29 @@ class Import extends Tool\BaseController
                 $inbox->getMessageId(),
                 $inbox->getSubject(),
                 'send to : '. $inbox->getToEmail(),
+                date('Y-m-d H:i:s', $inbox->getEmailCreateTime()),
+                $result
+            ];
+        }
+
+        // import "get" emails
+        $messages = \GmailManager::getUnreadMessages();
+        foreach ($messages as $message) {
+            $inbox = $this->makeInbox($message);
+            $result = $inboxes->addInbox($inbox);
+            if ($result) {
+                // 將信件設定為 已讀
+                \GmailManager::setMessageLabelToIsRead($message['googleMessageId']);
+            }
+            else {
+                $result = 'fail';
+            }
+
+            $show[] = [
+                $message['googleMessageId'],
+                $inbox->getMessageId(),
+                $inbox->getSubject(),
+                'get from: ' . $inbox->getFromEmail(),
                 date('Y-m-d H:i:s', $inbox->getEmailCreateTime()),
                 $result
             ];
@@ -83,32 +91,49 @@ class Import extends Tool\BaseController
     {
         $heads = \Ydin\ArrayKit\Dot::factory($info['headers']);
 
-        $from   = explode('<', $heads('from')   );
-        $to     = explode('<', $heads('to')     );
-        $date   = $this->timezoneConvert( $heads('date'), 'UTC', conf('app.timezone') );
+        if (false !== strstr($heads('from'), '<') ) {
+            // has name
+            $fromName   = strip_tags($heads('from'));
+            $fromEmail  = trim( strstr($heads('from'),'<'), '<>');
+        }
+        else {
+            $fromName   = '';
+            $fromEmail  = $heads('from');
+        }
+
+        if (false !== strstr($heads('to'), '<') ) {
+            // has name
+            $toName     = strip_tags($heads('to'));
+            $toEmail    = trim( strstr($heads('to'),'<'), '<>');
+        }
+        else {
+            $toName     = '';
+            $toEmail    = $heads('to');
+        }
+
 
         $inbox = new \Inbox();
-        $inbox->setMessageId            ( $heads('message-id')              );
-        $inbox->setReplyToMessageId     ( $heads('in-reply-to')             );
-        $inbox->setReferenceMessageIds  ( $heads('references')              );
-        $inbox->setFromEmail            ( trim($from[1], '<>')              );
-        $inbox->setToEmail              ( trim($to[1],   '<>')              );
-        $inbox->setReplyToEmail         ( trim($heads('return-path'), '<>') );
-
-        if (isset($from[0])) {
-            $inbox->setFromName ($from[0]);
-        }
-        if (isset($to[0])) {
-            $inbox->setToName ($to[0]);
-        }
+        $inbox->setMessageId            ( $heads('message-id')  );
+        $inbox->setReplyToMessageId     ( $heads('in-reply-to') );
+        $inbox->setReferenceMessageIds  ( $heads('references')  );
+        $inbox->setFromEmail            ( $fromEmail            );
+        $inbox->setToEmail              ( $toEmail              );
+        $inbox->setReplyToEmail         ( $fromEmail            );
+        $inbox->setFromName             ( $fromName             );
+        $inbox->setToName               ( $toName               );
         $inbox->setReplyToName          ( $inbox->getFromName() );
+        $inbox->setSubject              ( $heads('subject')     );
 
-        $inbox->setSubject              ( $heads('subject')                         );
+        $date = $this->timezoneConvert( $heads('date'), 'UTC', conf('app.timezone') );
         $inbox->setEmailCreateTime      ( strtotime($date)                          );
+
         $inbox->setProperty             ('googleMessageId', $info['googleMessageId']);
         $inbox->setProperty             ('headers',         $info['headers']        );
         $inbox->setProperty             ('data',            $info['data']           );
 
+        if ($info['body']) {
+            $inbox->setContent($info['body']);
+        }
         foreach ($info['data'] as $item) {
             if ( 'text/plain' === $item['mimeType'] && isset($item['content']) ) {
                 $inbox->setContent($item['content']);
