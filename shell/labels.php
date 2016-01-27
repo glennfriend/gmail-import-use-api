@@ -1,8 +1,7 @@
 <?php
-
 $basePath = dirname(__DIR__);
 require_once $basePath . '/app/bootstrap.php';
 initialize($basePath, 'shell');
 
-$controller = new AppModule\Import();
+$controller = new AppModule\Info();
 $controller->getLabels();

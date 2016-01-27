@@ -7,23 +7,14 @@ namespace AppModule;
 
 /**
  *  取得 route 處理之後獲得的參數
+ *
+ *  @see https://github.com/pwfisher/CommandLine.php
  */
 function attrib($key, $defaultValue=null)
 {
-    $allParams = Tool\LoadHelper::getArguments();
-    if (in_array($key, $allParams)) {
-        return true;
-    }
-
-    foreach ($allParams as $param) {
-        $tmp = explode('=', $param);
-        $name = $tmp[0];
-        array_shift($tmp);
-        $value = join('=', $tmp);
-
-        if ($name===$key) {
-            return $value;
-        }
+    $args = Tool\LoadHelper::getArgs();
+    if (isset($args[$key])) {
+        return $args[$key];
     }
 
     return $defaultValue;

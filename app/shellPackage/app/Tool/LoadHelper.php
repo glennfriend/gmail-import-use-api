@@ -17,18 +17,25 @@ class LoadHelper
             $args = [];
         }
 
-        array_shift($args);
         self::$args = $args;
         include_once "helper.php";
     }
 
     /**
-     *  get command line request
-     *  TODO: 請改用其它套件來解析裡面的參數!!
+     *  get pure command-line arguments
      */
     public static function getArguments()
     {
         return self::$args;
+    }
+
+    /**
+     *  取得整理過後的 CLI 參數
+     *  @dependency CommandLine class
+     */
+    public static function getArgs()
+    {
+        return \CommandLine::parseArgs(self::$args);
     }
 
 }

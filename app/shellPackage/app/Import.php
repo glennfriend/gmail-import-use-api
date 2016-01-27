@@ -12,7 +12,7 @@ class Import extends Tool\BaseController
      */
     protected function importAll()
     {
-        if (!attrib('exec')) {
+        if ("exec" !== attrib(0)) {
             pr('---- debug mode ---- (你必須要輸入參數 exec 才會真正執行)');
             exit;
         }
@@ -65,40 +65,20 @@ class Import extends Tool\BaseController
             ];
         }
 
-        pr(
-            \ConsoleHelper::table(
-                ['google message id', 'message id', 'subject', 'from/to', 'date', 'result'],
-                $show
-            )
-        );
+        if ($show) {
+            pr(
+                \ConsoleHelper::table(
+                    ['google message id', 'message id', 'subject', 'from/to', 'date', 'result'],
+                    $show
+                )
+            );
+        }
 
     }
 
     /**
      *
      */
-    protected function getLabels()
-    {
-        // Get the API client and construct the service object.
-        $client = \GmailApiHelper::getClient();
-        $service = new \Google_Service_Gmail($client);
-
-        // Print the labels in the user's account.
-        $user = 'me';
-        $results = $service->users_labels->listUsersLabels($user);
-
-        if (count($results->getLabels()) == 0) {
-            pr("No labels found.");
-        }
-        else {
-            pr("Labels:");
-            foreach ($results->getLabels() as $label) {
-                pr("- " . $label->getName());
-            }
-        }
-    }
-
-
     private function makeInbox($info)
     {
         $heads = \Ydin\ArrayKit\Dot::factory($info['headers']);
@@ -130,8 +110,8 @@ class Import extends Tool\BaseController
         $inbox->setProperty             ('data',            $info['data']           );
 
         foreach ($info['data'] as $item) {
-            if ('text/plain' === $item['mimeType']) {
-                $inbox->setContent( $item['content'] );
+            if ( 'text/plain' === $item['mimeType'] && isset($item['content']) ) {
+                $inbox->setContent($item['content']);
             }
         }
 
