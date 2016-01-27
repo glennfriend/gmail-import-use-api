@@ -2,12 +2,13 @@
     "require" : {
         "google/apiclient": "1.1.*",
         "symfony/console": "2.*",
-        "ydin": "1.*",
+        "pwfisher/command-line-php": "dev-master",
 
         "slim/slim": "3.*",
         "symfony/dependency-injection": "3.*",
         "zendframework/zend-db": "2.*",
         "doctrine/cache": "1.*",
+        "ydin": "1.*",
         "bridge": "*"
     },
     "repositories": [

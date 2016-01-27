@@ -7,6 +7,7 @@ $baseDir = dirname($vendorDir);
 
 return array(
     'BaseObject' => $baseDir . '/../app/models/BaseObject.php',
+    'CommandLine' => $vendorDir . '/pwfisher/command-line-php/CommandLine.php',
     'ConfigManager' => $baseDir . '/../app/components/manager/ConfigManager.php',
     'ConsoleHelper' => $baseDir . '/../app/components/helper/ConsoleHelper.php',
     'ErrorSupportHelper' => $baseDir . '/../app/components/helper/ErrorSupportHelper.php',
