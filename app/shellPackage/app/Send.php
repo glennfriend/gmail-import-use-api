@@ -16,10 +16,17 @@ class Send extends Tool\BaseController
             exit;
         }
 
-        $to      = "SB.cs <". conf('gmail.email') .">";
+        $getFrom = function() {
+            $fromEmail  = conf('gmail.email');
+            $fromName   = conf('gmail.name');
+            return "{$fromName} <{$fromEmail}>";
+        };
+
+        $to      = conf('gmail.email');
         $subject = '[gmail-import-use-api] just test';
-        $body    = 'Hello World';
-        $result  = \GmailManager::sendMessage($to, $subject, $body);
+        $body    = 'Hello World at ' . date("Y-m-d H:i:s");
+
+        $result = \GmailManager::sendMessage($getFrom(), $to, $subject, $body);
         if ($result) {
             pr('Send success');
         }

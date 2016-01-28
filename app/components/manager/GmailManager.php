@@ -168,11 +168,8 @@ class GmailManager
      *
      *  @return boolean
      */
-    public static function sendMessage($to, $subject, $body)
+    public static function sendMessage($from, $to, $subject, $body)
     {
-        $from = conf('gmail.email');
-        //$from = "My-Self <{$from}>";
-
         $mail = new \Nette\Mail\Message;
         $mail
             ->setFrom   ( $from )

@@ -3,14 +3,14 @@
 return [
 
     /**
-     *
+     *  提供服務者 的 公關名稱
      */
-    'email' => 'xxxx@gmail.com',
+    'name' => 'Client Service',
 
     /**
-     *
+     *  提供服務者 的 email address
      */
-    'passwd' => '',
+    'email' => 'xxxxxx@gmail.com',
 
     /**
      *  client secret
@@ -23,6 +23,7 @@ return [
      *  gmail allow permission code
      *      - by google accounts website
      *      - 在 console 下指令之後, 程式會提示你要如何取得該 code
+     *      - 設定之後重新下指令, 完成之後, 該 code 即可清除
      */
     'allow_permission_code' => '',
 
