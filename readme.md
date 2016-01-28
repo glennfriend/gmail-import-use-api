@@ -19,7 +19,7 @@
 
 ####Insufficient Permission
 - rm var/key/google-token.json
-- 如果有發生權限不足的情況, 刪除該檔案, 重新取得權限, 並且修改設定檔內容
+- 如果有發生權限不足的情況, 刪除該檔案, 重新取得授權碼 & 修改至設定檔內容
 
 ####Import rule
 - unread email to read
