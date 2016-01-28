@@ -7,9 +7,15 @@
 - download OAuth client secret (json)
 
 ####Project setting
+- create database
 - setting gmail account & password
 - mkdir -p var/cache var/key
 - cmod -R 777 var/
+
+####Try
+- php shell/send-test.php exec
+- php shell/import.php exec
+- php shell/get.php
 
 ####Insufficient Permission
 - rm var/key/google-token.json
