@@ -22,5 +22,5 @@
 - 如果有發生權限不足的情況, 刪除該檔案, 重新取得授權碼 & 修改至設定檔內容
 
 ####Import rule
-- unread email to read
-- send email to delete
+- import unread email (update eamil from unread to read)
+- import send email (delete the email !!)
