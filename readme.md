@@ -23,4 +23,4 @@
 
 ####Import rule
 - import unread email (update eamil from unread to read)
-- import send email (<font color="red">delete the email</font>)
+- import send email (<strong>delete the email</strong>)
