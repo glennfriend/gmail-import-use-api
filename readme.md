@@ -13,9 +13,9 @@
 - cmod -R 777 var/
 
 ####Try
-- php shell/send-test.php exec
-- php shell/import.php exec
-- php shell/get.php
+- php shell/send-test exec
+- php shell/import exec
+- php shell/get
 
 ####Insufficient Permission
 - rm var/key/google-token.json

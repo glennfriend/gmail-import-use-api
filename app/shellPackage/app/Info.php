@@ -12,12 +12,18 @@ class Info extends Tool\BaseController
     protected function getEmail()
     {
         if (!attrib(0)) {
-            pr('----------------------------------------------------- [help]');
-            pr('代入 參數 表示取得哪一筆資料');
-            pr('    example:');
-            pr('        $ php get.php 10');
-            pr('        $ php get.php last');
-            pr('------------------------------------------------------ [end]');
+            pr(<<<'EOD'
+------------------------------------------------------------
+only arguments:
+    id     (int)     get email by id
+    "last" (string)  get last email
+
+example:
+    php get 10
+    php get last
+------------------------------------------------------------
+EOD
+);
             exit;
         }
         $id = attrib(0);
