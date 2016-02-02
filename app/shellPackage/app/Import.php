@@ -79,11 +79,9 @@ class Import extends Tool\BaseController
         }
 
         if ($show) {
-            pr(
-                \ConsoleHelper::table(
-                    ['google message id', 'message id', 'subject', 'from/to', 'date', 'result'],
-                    $show
-                )
+            table(
+                $show,
+                ['google message id', 'message id', 'subject', 'from/to', 'date', 'result']
             );
         }
 

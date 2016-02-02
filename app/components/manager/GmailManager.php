@@ -261,7 +261,7 @@ class GmailManager
 
             $name = $part->getFilename();
             if ($name || strlen($name)>0) {
-                $storageFilename = self::_getFilenameByName($name);
+                $storageFilename    = self::_getFilenameByName($name);
                 $item['attachId']   = $part['body']['attachmentId'];
                 $item['name']       = $name;
                 $item['headers']    = self::_makeHeaders($part['headers']);

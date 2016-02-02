@@ -113,6 +113,14 @@ function pr($data, $writeLog=false)
     }
 }
 
+function table(Array $rows, $headers=null)
+{
+    if (null === $headers) {
+        $headers = array_keys($rows[0]);
+    }
+    echo ConsoleHelper::table( $headers, $rows );
+}
+
 /**
  *  包裝了 Symfony Dependency-Injection
  *  提供了簡易的取用方式 DI->get( $service )
