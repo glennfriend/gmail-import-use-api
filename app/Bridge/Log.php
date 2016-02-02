@@ -49,6 +49,10 @@ class Log
      */
     public static function sql($content)
     {
+        if (strlen($content)>2000) {
+            $content  = substr($content, 0, 2000);
+            $content .= ' .... (' . strlen($content) . ')';
+        }
         $content = date("Y-m-d H:i:s") .' - '. $content;
         self::write('debug-sql.log', $content);
     }
