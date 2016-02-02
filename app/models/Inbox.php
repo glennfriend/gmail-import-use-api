@@ -20,35 +20,17 @@ class Inbox extends BaseObject
                 'storage' => 'getId',
                 'field'   => 'id',
             ],
-            'messageId' => [
-                'type'    => 'string',
-                'filters' => ['message_trim'],
-                'storage' => 'getMessageId',
-                'field'   => 'message_id',
+            'parentId' => [
+                'type'    => 'integer',
+                'filters' => ['intval'],
+                'storage' => 'getParentId',
+                'field'   => 'parent_id',
             ],
-            'replyToMessageId' => array(
-                'type'    => 'string',
-                'filters' => array('message_trim'),
-                'storage' => 'getReplyToMessageId',
-                'field'   => 'reply_to_message_id',
-            ),
-            'referenceMessageIds' => array(
-                'type'    => 'string',
-                'filters' => array('message_trim'),
-                'storage' => 'getReferenceMessageIds',
-                'field'   => 'reference_message_ids',
-            ),
             'fromEmail' => [
                 'type'    => 'string',
                 'filters' => ['strip_tags','trim'],
                 'storage' => 'getFromEmail',
                 'field'   => 'from_email',
-            ],
-            'replyToEmail' => [
-                'type'    => 'string',
-                'filters' => ['strip_tags','trim'],
-                'storage' => 'getReplyToEmail',
-                'field'   => 'reply_to_email',
             ],
             'toEmail' => [
                 'type'    => 'string',
@@ -62,12 +44,6 @@ class Inbox extends BaseObject
                 'storage' => 'getFromName',
                 'field'   => 'from_name',
             ],
-            'replyToName' => [
-                'type'    => 'string',
-                'filters' => ['strip_tags','trim'],
-                'storage' => 'getReplyToName',
-                'field'   => 'reply_to_name',
-            ],
             'toName' => [
                 'type'    => 'string',
                 'filters' => ['strip_tags','trim'],
@@ -80,11 +56,11 @@ class Inbox extends BaseObject
                 'storage' => 'getSubject',
                 'field'   => 'subject',
             ],
-            'content' => [
+            'bodySnippet' => [
                 'type'    => 'string',
-                'filters' => ['strip_tags','trim'],
-                'storage' => 'getContent',
-                'field'   => 'content',
+                'filters' => ['trim'],
+                'storage' => 'getBodySnippet',
+                'field'   => 'body_snippet',
             ],
             'emailCreateTime' => [
                 'type'    => 'timestamp',
@@ -92,6 +68,18 @@ class Inbox extends BaseObject
                 'storage' => 'getEmailCreateTime',
                 'field'   => 'email_create_time',
                 'value'   => strtotime('1970-01-01'),
+            ],
+            'messageId' => [
+                'type'    => 'string',
+                'filters' => ['message_trim'],
+                'storage' => 'getMessageId',
+                'field'   => 'message_id',
+            ],
+            'referenceMessageIds' => [
+                'type'    => 'string',
+                'filters' => ['message_trim'],
+                'storage' => 'getReferenceMessageIds',
+                'field'   => 'reference_message_ids',
             ],
             'properties' => [
                 'type'    => 'string',
@@ -106,8 +94,16 @@ class Inbox extends BaseObject
         extends
     ------------------------------------------------------------------------------------------------------------------------ */
 
+    /**
+     *  取得附件資訊
+     */
     public function getAttachments()
     {
+        // 未使用, 考慮改成 getAttachmentsInfos
+        die('23582034582349058023495823405');
+
+
+
         $attachments = $this->getProperty('info')['attachments'];
         if (!$attachments) {
             return [];
@@ -121,7 +117,9 @@ class Inbox extends BaseObject
 
     }
 
-    // trim
+    /**
+     *  trim
+     */
     protected function filter_message_trim( $value )
     {
         return trim($value);

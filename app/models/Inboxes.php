@@ -5,7 +5,8 @@
  */
 class Inboxes extends ZendModel
 {
-    const CACHE_INBOX = 'cache_inbox';
+    const CACHE_INBOX            = 'cache_inbox';
+    const CACHE_INBOX_MESSAGE_ID = 'cache_inbox_message_id';
 
     /**
      *  table name
@@ -25,20 +26,18 @@ class Inboxes extends ZendModel
     public function mapRow( $row )
     {
         $object = new Inbox();
-        $object->setId                  ( $row['id']                            );
-        $object->setMessageId           ( $row['message_id']                    );
-        $object->setReplyToMessageId    ( $row['reply_to_message_id']           );
-        $object->setReferenceMessageIds ( $row['reference_message_ids']         );
-        $object->setFromEmail           ( $row['from_email']                    );
-        $object->setReplyToEmail        ( $row['reply_to_email']                );
-        $object->setToEmail             ( $row['to_email']                      );
-        $object->setFromName            ( $row['from_name']                     );
-        $object->setReplyToName         ( $row['reply_to_name']                 );
-        $object->setToName              ( $row['to_name']                       );
-        $object->setSubject             ( $row['subject']                       );
-        $object->setContent             ( $row['content']                       );
-        $object->setEmailCreateTime     ( strtotime($row['email_create_time'])  );
-        $object->setProperties          ( unserialize($row['properties'])       );
+        $object->setId                   ( $row['id']                           );
+        $object->setParentId             ( $row['parent_id']                    );
+        $object->setFromEmail            ( $row['from_email']                   );
+        $object->setToEmail              ( $row['to_email']                     );
+        $object->setFromName             ( $row['from_name']                    );
+        $object->setToName               ( $row['to_name']                      );
+        $object->setSubject              ( $row['subject']                      );
+        $object->setBodySnippet          ( $row['body_snippet']                 );
+        $object->setEmailCreateTime      ( strtotime($row['email_create_time']) );
+        $object->setMessageId            ( $row['message_id']                   );
+        $object->setReferenceMessageIds  ( $row['reference_message_ids']        );
+        $object->setProperties           ( unserialize($row['properties'])      );
         return $object;
     }
 
@@ -110,6 +109,20 @@ class Inboxes extends ZendModel
         return $object;
     }
 
+    /**
+     *  get Inbox by message id
+     *  @param  string id
+     *  @return object or false
+     */
+    public function getInboxByMessageId( $id )
+    {
+        $object = $this->getObject( 'message_id', $id, Inboxes::CACHE_INBOX_MESSAGE_ID );
+        if ( !$object ) {
+            return false;
+        }
+        return $object;
+    }
+
     /* ================================================================================
         find Inboxes and get count
         多欄、針對性的搜尋, 主要在後台方便使用, 使用 and 搜尋方式
@@ -150,17 +163,16 @@ class Inboxes extends ZendModel
         $list = [
             'fields' => [
                 'id'                    => 'id',
-                'messageId'             => 'message_id',
-                'replyToMessageId'      => 'reply_to_message_id',
-                'referenceMessageIds'   => 'reference_message_ids',
+                'parentId'              => 'parent_id',
                 'fromEmail'             => 'from_email',
-                'replyToEmail'          => 'reply_to_email',
                 'toEmail'               => 'to_email',
                 'fromName'              => 'from_name',
-                'replyToName'           => 'reply_to_name',
                 'toName'                => 'to_name',
                 'subject'               => 'subject',
-                'content'               => 'content',
+                'bodySnippet'           => 'body_snippet',
+                'emailCreateTime'       => 'email_create_time',
+                'messageId'             => 'message_id',
+                'referenceMessageIds'   => 'reference_message_ids',
             ],
             'option' => [
                 '_order',
@@ -176,31 +188,18 @@ class Inboxes extends ZendModel
         $select = $this->getDbSelect();
         $field = $list['fields'];
 
-        if ( isset($opt['messageId']) ) {
-            $select->where->and->equalTo( $field['messageId'], $opt['messageId'] );
-        }
-        if ( isset($opt['replyToMessageId']) ) {
-            $select->where->and->equalTo( $field['replyToMessageId'], $opt['replyToMessageId'] );
-        }
-        if ( isset($opt['referenceMessageIds']) ) {
-            $select->where->and->like( $field['referenceMessageIds'], '%'.$opt['referenceMessageIds'].'%' );
+        if ( isset($opt['parentId']) ) {
+            $select->where->and->equalTo( $field['parentId'], $opt['parentId'] );
         }
 
         if ( isset($opt['fromEmail']) ) {
             $select->where->and->equalTo( $field['fromEmail'], $opt['fromEmail'] );
         }
-        if ( isset($opt['replyToEmail']) ) {
-            $select->where->and->equalTo( $field['replyToEmail'], $opt['replyToEmail'] );
-        }
         if ( isset($opt['toEmail']) ) {
             $select->where->and->equalTo( $field['toEmail'], $opt['toEmail'] );
         }
-
         if ( isset($opt['fromName']) ) {
             $select->where->and->equalTo( $field['fromName'], $opt['fromName'] );
-        }
-        if ( isset($opt['replyToName']) ) {
-            $select->where->and->equalTo( $field['replyToName'], $opt['replyToName'] );
         }
         if ( isset($opt['toName']) ) {
             $select->where->and->equalTo( $field['toName'], $opt['toName'] );
@@ -209,8 +208,15 @@ class Inboxes extends ZendModel
         if ( isset($opt['subject']) ) {
             $select->where->and->like( $field['subject'], '%'.$opt['subject'].'%' );
         }
-        if ( isset($opt['content']) ) {
-            $select->where->and->like( $field['content'], '%'.$opt['content'].'%' );
+        if ( isset($opt['bodySnippet']) ) {
+            $select->where->and->like( $field['bodySnippet'], '%'.$opt['bodySnippet'].'%' );
+        }
+
+        if ( isset($opt['messageId']) ) {
+            $select->where->and->equalTo( $field['messageId'], $opt['messageId'] );
+        }
+        if ( isset($opt['referenceMessageIds']) ) {
+            $select->where->and->like( $field['referenceMessageIds'], '%'.$opt['referenceMessageIds'].'%' );
         }
 
         if ( !$isGetCount ) {

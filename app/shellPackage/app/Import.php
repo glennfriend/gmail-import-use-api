@@ -27,47 +27,52 @@ class Import extends Tool\BaseController
         $show = [];
         $inboxes = new \Inboxes();
 
-        // import "send" emails
-        $messages = \GmailManager::getSendMessages();
-        foreach ($messages as $message) {
-            $inbox = $this->makeInbox($message);
-            $result = $inboxes->addInbox($inbox);
-            if ($result) {
-                // 刪除該信件!!
-                \GmailManager::deleteMessage($message['googleMessageId']);
-            }
-            else {
-                $result = 'fail';
-            }
+        // import "get", "send" emails
+        $messages = array_merge(
+            \GmailManager::getUnreadMessages(),
+            \GmailManager::getSendMessages()
+        );
 
-            $show[] = [
-                $message['googleMessageId'],
-                $inbox->getMessageId(),
-                $inbox->getSubject(),
-                'send to : '. $inbox->getToEmail(),
-                date('Y-m-d H:i:s', $inbox->getEmailCreateTime()),
-                $result
-            ];
+        // 時間為軸 舊 -> 新 排序
+        $messageSortByTime = [];
+        foreach ($messages as $message) {
+            $time = strtotime($message['headers']['date']);
+            $messageSortByTime[$time] = $message;
         }
+        sort($messageSortByTime);
 
-        // import "get" emails
-        $messages = \GmailManager::getUnreadMessages();
-        foreach ($messages as $message) {
+        //
+        foreach ($messageSortByTime as $message) {
             $inbox = $this->makeInbox($message);
             $result = $inboxes->addInbox($inbox);
             if ($result) {
-                // 將信件設定為 已讀
-                \GmailManager::setMessageLabelToIsRead($message['googleMessageId']);
+
+                if ('unread'==$message['customType']) {
+                    // 將信件設定為 已讀
+                    \GmailManager::setMessageLabelToIsRead($message['googleMessageId']);
+                }
+                else {
+                    // 刪除該信件!!
+                    \GmailManager::deleteMessage($message['googleMessageId']);
+                }
+
             }
             else {
                 $result = 'fail';
+            }
+
+            if ('unread'==$message['customType']) {
+                $type = 'get from: '. $inbox->getFromEmail();
+            }
+            else {
+                $type = 'send to : '. $inbox->getToEmail();
             }
 
             $show[] = [
                 $message['googleMessageId'],
                 $inbox->getMessageId(),
                 $inbox->getSubject(),
-                'get from: ' . $inbox->getFromEmail(),
+                $type,
                 date('Y-m-d H:i:s', $inbox->getEmailCreateTime()),
                 $result
             ];
@@ -114,14 +119,11 @@ class Import extends Tool\BaseController
 
         $inbox = new \Inbox();
         $inbox->setMessageId            ( $heads('message-id')  );
-        $inbox->setReplyToMessageId     ( $heads('in-reply-to') );
         $inbox->setReferenceMessageIds  ( $heads('references')  );
         $inbox->setFromEmail            ( $fromEmail            );
         $inbox->setToEmail              ( $toEmail              );
-        $inbox->setReplyToEmail         ( $fromEmail            );
         $inbox->setFromName             ( $fromName             );
         $inbox->setToName               ( $toName               );
-        $inbox->setReplyToName          ( $inbox->getFromName() );
         $inbox->setSubject              ( $heads('subject')     );
 
         $date = $this->timezoneConvert( $heads('date'), 'UTC', conf('app.timezone') );
@@ -132,13 +134,37 @@ class Import extends Tool\BaseController
         $inbox->setProperty             ('data',            $info['data']           );
 
         if ($info['body']) {
-            $inbox->setContent($info['body']);
+            $inbox->setBodySnippet($info['body']);
         }
+        /*
         foreach ($info['data'] as $item) {
             if ( 'text/plain' === $item['mimeType'] && isset($item['content']) ) {
-                $inbox->setContent($item['content']);
+                $inbox->setBodySnippet($item['content']);
             }
         }
+        */
+
+        $referenceMessageIds = $inbox->getReferenceMessageIds();
+        if (!$referenceMessageIds) {
+            $parentId = 0;
+        }
+        else {
+            $tmp = explode(" ", $referenceMessageIds);
+            $firstReferenceMessageId = $tmp[0];
+
+            $inboxes = new \Inboxes();
+            $theInbox = $inboxes->getInboxByMessageId($firstReferenceMessageId);
+            if ($theInbox) {
+                $parentId = $theInbox->getId();
+            }
+            else {
+                // 找不到 message id, 這可能是一個大問題
+                // 但也有可能只是一個小問題 -> 新信件 比 舊信件 先被匯入
+                // 之後需要想辦法重新串起來
+                $parentId = -1;
+            }
+        }
+        $inbox->setParentId($parentId);
 
         return $inbox;
     }

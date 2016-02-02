@@ -5,7 +5,7 @@
 -- http://www.phpmyadmin.net
 --
 -- 主機: localhost
--- 產生時間： 2016 年 01 月 26 日 02:57
+-- 產生時間： 2016 年 02 月 02 日 04:01
 -- 伺服器版本: 5.5.44-0ubuntu0.14.04.1
 -- PHP 版本： 5.5.22
 
@@ -30,19 +30,17 @@ SET time_zone = "+00:00";
 
 CREATE TABLE IF NOT EXISTS `inboxes` (
   `id` int(11) unsigned NOT NULL,
-  `message_id` varchar(255) NOT NULL,
-  `reply_to_message_id` varchar(255) NOT NULL COMMENT 'in_reply_to field',
-  `reference_message_ids` text NOT NULL COMMENT 'references field',
+  `parent_id` int(11) NOT NULL COMMENT '可能會有 -1 的值, 不能放置 UNSIGNED 屬性',
   `from_email` varchar(255) NOT NULL,
-  `reply_to_email` varchar(255) NOT NULL,
   `to_email` varchar(255) NOT NULL,
   `from_name` varchar(100) NOT NULL,
-  `reply_to_name` varchar(100) NOT NULL,
   `to_name` varchar(100) NOT NULL,
   `subject` varchar(255) NOT NULL,
-  `content` text NOT NULL,
+  `body_snippet` text NOT NULL,
   `email_create_time` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  `properties` text NOT NULL
+  `message_id` varchar(80) NOT NULL COMMENT 'always 68 byte',
+  `reference_message_ids` text NOT NULL COMMENT 'references field',
+  `properties` mediumtext NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
@@ -54,7 +52,8 @@ CREATE TABLE IF NOT EXISTS `inboxes` (
 --
 ALTER TABLE `inboxes`
   ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `message_id` (`message_id`);
+  ADD UNIQUE KEY `message_id` (`message_id`),
+  ADD KEY `parent_id` (`parent_id`);
 
 --
 -- 在匯出的資料表使用 AUTO_INCREMENT

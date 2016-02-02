@@ -25,7 +25,7 @@ class GmailManager
         return $service;
     }
 
-    public static function getMessage($messageId)
+    public static function getMessage($messageId, $customType=null)
     {
         $optParamsGet = [];
         $optParamsGet['format'] = 'full';
@@ -33,7 +33,6 @@ class GmailManager
 
         $parts = $message->getPayload()->getParts();
         // debug
-        // pr($message->getSnippet()); pr("");
         // pr($parts); pr(""); exit;
 
         $body = $message->getSnippet();
@@ -56,6 +55,7 @@ class GmailManager
 
         return [
             'googleMessageId'   => $messageId,
+            'customType'        => $customType,
             'headers'           => $headers,
             'data'              => $data,
             'body'              => $body,
@@ -66,8 +66,8 @@ class GmailManager
      *  從 gmail 取得多筆 未閱讀 的郵件
      *
      *  NOTE:
-     *      取得的 gmail 郵件是由 新 -> 舊 取得
-     *      程式直接將陣列反轉輸出
+     *      由 gmail 取得的郵件是由 新 -> 舊 取得
+     *      程式直接將陣列反轉輸出為 舊 -> 新
      *
      *  @see https://developers.google.com/gmail/api/guides/labels
      */
@@ -89,7 +89,7 @@ class GmailManager
         $list = $messagesResponse->getMessages();
         foreach ($list as $gmailMessage) {
             $messageId  = $gmailMessage->getId();
-            $messages[] = self::getMessage($messageId);
+            $messages[] = self::getMessage($messageId, 'unread');
         }
 
         return array_reverse($messages);
@@ -99,8 +99,8 @@ class GmailManager
      *  從 gmail 取得多筆 已寄信 的郵件
      *
      *  NOTE:
-     *      取得的 gmail 郵件是由 新 -> 舊 取得
-     *      程式直接將陣列反轉輸出
+     *      由 gmail 取得的郵件是由 新 -> 舊 取得
+     *      程式直接將陣列反轉輸出為 舊 -> 新
      *
      *  @see https://developers.google.com/gmail/api/guides/labels
      */
@@ -118,7 +118,7 @@ class GmailManager
         $list = $messagesResponse->getMessages();
         foreach ($list as $gmailMessage) {
             $messageId = $gmailMessage->getId();
-            $messages[] = self::getMessage($messageId);
+            $messages[] = self::getMessage($messageId, 'send');
         }
 
         return array_reverse($messages);
